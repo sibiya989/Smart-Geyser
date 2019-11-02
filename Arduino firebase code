@@ -10,8 +10,9 @@ int redLedPin = D3;
 int temp_sensor = D5;
 
 float temperature = 0;
-int lowerLimit = 15;
-int higherLimit = 35;
+float userTemperature = 0;
+int lowerLimit = 30;
+int higherLimit = 70;
                      
 OneWire oneWirePin(temp_sensor);
 DallasTemperature sensors(&oneWirePin);
@@ -29,7 +30,7 @@ double c ;
 int on_off = 0;  // led status received from firebase
 int autoOn = 0;
 int emergencyButton = 0;
-//unsigned long Ttime;
+
  double Ttime2;
                                                              // for external led
 void setup() {
@@ -59,9 +60,11 @@ void setup() {
   Serial.println(WiFi.localIP());                  //print local IP address
   Firebase.begin(FIREBASE_HOST, FIREBASE_AUTH);    // connect to firebase
   
-  Firebase.setInt("on_off", 0);
+  Firebase.setInt("ON", 0);
   Firebase.setInt("AUTO_ON", 0);
   Firebase.setInt("Emergency", 0);
+  Firebase.setInt("USERTEMP", 0);
+  
 
   
 }
@@ -70,7 +73,11 @@ void loop()
 {
   Firebase.setFloat("Temp",temperature );
   //NORMAL ON AND OFF
-  on_off = Firebase.getInt("on_off"); 
+  on_off = Firebase.getInt("ON"); 
+  higherLimit = Firebase.getInt("Temp");
+  userTemperature = Firebase.getInt("USERTEMP");
+ 
+  
   
   //AUTO ON AND OFF BASED ON ANDROID ALAR
   autoOn = Firebase.getInt("AUTO_ON");
@@ -81,13 +88,13 @@ void loop()
   sensors.requestTemperatures();
   temperature = sensors.getTempCByIndex(0);
 
-  if(emergencyButton != 1  && on_off == 1)
+  if(emergencyButton != 1)
   {
-    if(temperature <= lowerLimit)
+    if(temperature <= lowerLimit   && on_off == 1)
     {
-       Firebase.setInt("on_off", 1);
+       Firebase.setInt("ON", 1);
       do{  
-        Serial.println(temperature);
+        Serial.println( userTemperature);
         
         Serial.println("Geyser ON");
         Ttime2 = Firebase.getInt("Time");
@@ -101,24 +108,46 @@ void loop()
          Firebase.setFloat("Time",Ttime2+ i); 
           delay(1000);
          digitalWrite(yellowLedPin, HIGH);
+          Serial.println(userTemperature);
+           Serial.println(higherLimit);
+         
          }
-      while(temperature != higherLimit && on_off  != 1);  
+      while( userTemperature != higherLimit && on_off  != 1);  
      
     }
-    else
+    else if(temperature <= lowerLimit   && autoOn == 1)
     {
-      
-        Firebase.setInt("on_off", 0);
-        digitalWrite(yellowLedPin, LOW);
-      }
+       Firebase.setInt("ON", 1);
+      do{  
+        Serial.println( userTemperature);
+        
+        Serial.println("Geyser ON");
+        Ttime2 = Firebase.getInt("Time");
+        Serial.print("Time: ");
+         c = millis();
+         i = (c - a) / 60000;
+         Serial.println(i);
+         Serial.println("......");
+ 
+       //update firebase with the previous logedd time and the current time
+         Firebase.setFloat("Time",Ttime2+ i); 
+          delay(1000);
+         digitalWrite(yellowLedPin, HIGH);
+          Serial.println(userTemperature);
+           Serial.println(higherLimit);
+         
+         }
+      while( userTemperature != higherLimit && autoOn  != 1);  
+     
+    }
    
     
-  }
-    else if(emergencyButton == 1  && on_off == 1)
+  } 
+    else if(emergencyButton == 1)
     {
-      Firebase.setInt("on_off", 0);
+      Firebase.setInt("ON", 0);
       digitalWrite(yellowLedPin, LOW);
-            Serial.println("offffffff");
+      Serial.println("OFF DUE TO EMERGENCY");
     }
 
   
