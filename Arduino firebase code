@@ -93,7 +93,7 @@ void loop()
         Ttime2 = Firebase.getInt("Time");
         Serial.print("Time: ");
          c = millis();
-         i = (c - a) / 1000;
+         i = (c - a) / 60000;
          Serial.println(i);
          Serial.println("......");
  
@@ -103,13 +103,21 @@ void loop()
          digitalWrite(yellowLedPin, HIGH);
          }
       while(temperature != higherLimit && on_off  != 1);  
+     
     }
+    else
+    {
+      
+        Firebase.setInt("on_off", 0);
+        digitalWrite(yellowLedPin, LOW);
+      }
    
     
   }
     else if(emergencyButton == 1  && on_off == 1)
     {
       Firebase.setInt("on_off", 0);
+      digitalWrite(yellowLedPin, LOW);
             Serial.println("offffffff");
     }
 
