@@ -17,8 +17,8 @@ int higherLimit = 70;
 OneWire oneWirePin(temp_sensor);
 DallasTemperature sensors(&oneWirePin);
 
-#define FIREBASE_HOST "nodemcu-2a4e2.firebaseio.com"
-#define FIREBASE_AUTH "bwDLCK226BGhiyxk5priRzKB6TbCYGH8iofQUkdd"
+#define FIREBASE_HOST "your firebase link"
+#define FIREBASE_AUTH "App key"
 #define WIFI_SSID "CBD Res - The Foundation"
 #define WIFI_PASSWORD "smart12345"
 
